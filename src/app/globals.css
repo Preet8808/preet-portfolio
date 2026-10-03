@@ -1,26 +1,525 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS + BASE
+
+   NOTE ON STRUCTURE — read before editing:
+
+   Tailwind v4 tree-shakes `@theme` variables it cannot statically detect
+   being used. A token referenced only from inside an arbitrary value like
+   `px-[var(--gutter)]` is invisible to that scanner, so the variable is
+   never emitted and the property silently resolves to nothing.
+
+   That is not hypothetical — it is what happened here first time round:
+   `--gutter` shipped as nothing, so every `px-[var(--gutter)]` collapsed.
+
+   So: raw design tokens live in a plain `:root` block, which is always
+   emitted verbatim. `@theme` is kept only for the colour and font tokens
+   that actually generate Tailwind utilities (bg-base, text-accent, …).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Raw tokens: always shipped, safe for var() everywhere ──── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Type */
+  --font-display: 'Anton', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Rhythm */
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+  --measure: 1440px;
+  --radius-card: 4px;
+
+  /* Hero name size.
+
+     Width alone is not enough, and neither is height alone:
+       · 19vw/15.5vw on a short-but-wide window made the two name lines
+         alone eat ~490px, so the sub-line fell below the fold and the
+         hero overflowed 100svh.
+       · A pure vw value collapses to ~60px on a phone, which is far
+         too small to be the one big statement on the page.
+
+     `23vw` is the largest size at which "PANAVIYA" still fits inside
+     the 90vw of content a phone leaves after the gutter. `22vh` is the
+     largest at which both lines plus the corner labels and the
+     sub-line fit a 776px-tall window — at 23vh the hero came out 8px
+     past 100svh. min() of the two means neither axis can push the hero
+     off screen.
+
+     Declared here rather than inline as a Tailwind arbitrary value so
+     there is no nested-comma parsing risk — font-size takes the whole
+     declaration as its length. */
+  --hero-size: clamp(3rem, min(23vw, 22vh), 16rem);
+
+  /* How far "PANAVIYA" is pulled in from the right edge.
+
+     The two name lines already OVERLAP vertically (-141px of ink
+     overlap at 1900px wide), so leading was never what separated them.
+     The real gap is horizontal: with PREET flush left and PANAVIYA
+     flush right there were 517px of dead space between PREET's right
+     edge and PANAVIYA's left edge, which is what made the two words
+     read as two unrelated blocks rather than one name.
+
+     This insets the second line from the right to close that gap.
+     Set to 0vw to restore the original full-bleed spread. */
+  --hero-inset: 13vw;
+
+  /* Leading between the two name lines. Lower = closer together.
+
+     There is a hard floor here. `.line-mask` is `overflow: hidden`, so
+     once the line box gets shorter than the glyphs' ink box the mask
+     shears the letters off — measured at 0.74 PREET lost its bottom
+     edge and PANAVIYA was cut in half. 0.78 is the tightest value that
+     renders cleanly:
+       0.86  original, comfortable but a wide empty band between lines
+       0.82  slightly tighter
+       0.78  tight, poster-like, no clipping   <- current
+       0.74  CLIPS — do not go below this without also removing
+             `overflow: hidden` from .line-mask */
+  --hero-leading: 0.78;
+
+  /* Timing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --dur-fast: 240ms;
+  --dur-base: 520ms;
+  --dur-slow: 900ms;
+
+  /* Colour.
+     Declared here as well as in @theme because several components set
+     these from inline styles (the loader lights, cursor ring colour,
+     status glow) and `@theme inline` compiles the value away instead of
+     leaving a variable to reference. */
+  --color-base: #0a0a0a;
+  --color-base-raised: #101010;
+  --color-base-sunken: #050505;
+  --color-ink: #f4f4f2;
+  --color-ink-2: #a8a8a4;
+  --color-ink-3: #6b6b67;
+  --color-accent: #d4ff00;
+  --color-accent-dim: #a8cc00;
+  --color-accent-glow: rgb(212 255 0 / 0.28);
+  --color-light: #e10600;
 }
 
+/* ── Tokens that generate Tailwind utilities ───────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-base: #0a0a0a;
+  --color-base-raised: #101010;
+  --color-base-sunken: #050505;
+
+  --color-ink: #f4f4f2;
+  --color-ink-2: #a8a8a4;
+  --color-ink-3: #6b6b67;
+
+  --color-accent: #d4ff00;
+  --color-accent-dim: #a8cc00;
+  --color-accent-glow: rgb(212 255 0 / 0.28);
+
+  /* Racing red — loader start lights only */
+  --color-light: #e10600;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Reset ─────────────────────────────────────────────────────
+   NOTE: there is intentionally no hand-written `*` reset here.
+
+   Tailwind v4's preflight already does box-sizing + margin: 0 +
+   padding: 0 on every element. Repeating it unlayered is not
+   harmless duplication — unlayered rules beat ALL `@layer` rules in
+   the cascade regardless of specificity, so the copy silently
+   overrode every Tailwind spacing utility in `@layer utilities`.
+
+   Symptom: computed `padding-top` was 0px on every element carrying
+   a `py-*` class, so `py-24` section padding, `py-2` pills and
+   `py-1.5` badges all collapsed to nothing and every section rammed
+   into the next one. Anything genuinely global belongs in
+   `@layer base` below, never unlayered. */
+
+html {
+  background: #0a0a0a;
+  color: #f4f4f2;
+  /* Lenis owns scrolling; native smooth would fight it */
+  scroll-behavior: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0a0a0a;
+  color: #f4f4f2;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  overflow-x: clip;
+}
+
+::selection {
+  background: #d4ff00;
+  color: #0a0a0a;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid #d4ff00;
+  outline-offset: 4px;
+}
+
+/* ── Lenis ─────────────────────────────────────────────────── */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES — plain CSS classes rather than @utility.
+   @utility definitions were being tree-shaken; these always ship.
+
+   They live in `@layer components` on purpose. Unlayered rules beat
+   every `@layer` rule regardless of specificity, so an unlayered
+   `.shell` would permanently outrank a Tailwind `py-*` on the same
+   element with no way to override it. `components` is declared before
+   `utilities`, so `py-4 shell` wins and `.shell` still styles
+   everything on its own. Being inside a layer does NOT make them
+   tree-shakable — anything written in this file ships verbatim.
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+  /* Oversized condensed display type.
+
+     line-height is 0.95, NOT the 0.86 it used to be. At 0.86 Anton's
+     cap height is taller than the line box, so any heading that WRAPPED
+     to a second or third line had its lines physically overlap — the
+     Intro headline ("A SYSTEM EITHER / HOLDS OR IT DOES / NOT.") and the
+     pull quote were both unreadable. 0.86 is still available as
+     `.display-tight` for the hero name, where the lines are set
+     individually and the overlap is the intent. */
+.display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+  }
+
+  /* Tight leading for type set one line per element (the hero name).
+
+     Driven by --hero-leading rather than a literal. 0.86 left a visible
+     band of dead space between "PREET" and "PANAVIYA"; Anton's cap
+     height is roughly 0.73em, so anything under ~0.75 starts to bring
+     the caps together. 0.74 separates them by about a pixel or two at
+     display size — tight, poster-like, and still not overlapping. */
+  .display-tight {
+    line-height: var(--hero-leading, 0.74);
+  }
+
+  /* Sentence case, for rows that read as words rather than posters —
+     contact links like "p.panaviya@gmail.com" and "GitHub". All-caps
+     turned the email into a shout and made the rows hard to scan. */
+  .display-sentence {
+    text-transform: none;
+    letter-spacing: -0.005em;
+  }
+
+  /* Outlined variant of .display */
+  .display-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px #f4f4f2;
+  }
+
+/* Page gutter container — every section is wrapped in this */
+  .shell {
+    width: 100%;
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Buttons.
+     `.btn` was referenced from Hero.tsx but had never actually been
+     written, so the hero CTAs rendered as unstyled bare text with no
+     border and no fill. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.9rem 1.75rem;
+    border: 1px solid rgb(244 244 242 / 0.18);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+    white-space: nowrap;
+    transition:
+      color var(--dur-fast) var(--ease-out-expo),
+      background-color var(--dur-fast) var(--ease-out-expo),
+      border-color var(--dur-fast) var(--ease-out-expo);
+  }
+  .btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .btn-fill {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #0a0a0a;
+  }
+  .btn-fill:hover {
+    background: transparent;
+    color: var(--color-accent);
+  }
+
+  /* Small mono label — the data-dashboard voice used across the site */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #6b6b67;
+  }
+  .label-accent {
+    color: #d4ff00;
+  }
+
+  /* Line reveal mask: parent clips, child slides up. translateY only. */
+  .line-mask {
+    display: block;
+    overflow: hidden;
+  }
+
+  /* ── Name spotlight ─────────────────────────────────────────────
+     A pool of light that follows the pointer across the name.
+
+     Implemented as a duplicate of the name text painted with a radial
+     gradient and clipped to the glyphs (`background-clip: text`), so
+     the letters are transparent where the light is not and solid where
+     it is. That is what makes the OUTLINED second line fill in as the
+     cursor crosses it, which is the whole effect — you cannot do that
+     with a colour or a blend mode.
+
+     `--spot-x` / `--spot-y` are written by Hero once per frame and are
+     in the element's own coordinate space (percentages), so the overlay
+     lines up with the text no matter how the line is aligned.
+
+     The overlay is `aria-hidden` and the real name is the accessible
+     one, so this adds nothing for a screen reader. */
+  .hero-spot {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: transparent;
+    background-image: radial-gradient(
+      circle var(--spot-size, 30vmax) at var(--spot-x, 50%) var(--spot-y, 50%),
+      #ffffff 0%,
+      rgb(255 255 255 / 0.85) 22%,
+      rgb(255 255 255 / 0.35) 40%,
+      rgb(255 255 255 / 0) 62%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    /* A halo only inside the lit region — this is what reads on the
+       solid first line, where a white-on-white fill is invisible. */
+    filter: drop-shadow(0 0 22px rgb(212 255 0 / 0.28));
+  }
+
+  /* The overlay must sit exactly on top of its base line, so it repeats
+     the base's alignment and size rather than inheriting layout. */
+  .hero-spot-fill {
+    background-image: radial-gradient(
+      circle var(--spot-size, 30vmax) at var(--spot-x, 50%) var(--spot-y, 50%),
+      var(--color-accent) 0%,
+      rgb(212 255 0 / 0.55) 34%,
+      rgb(212 255 0 / 0) 64%
+    );
+    filter: none;
+  }
+
+  /* Images start oversized and scale to 1 as they enter */
+  .parallax-media {
+    will-change: transform;
+    transform: scale(1.2);
+  }
+
+  /* ── Marquee ────────────────────────────────────────────────────
+     CSS-driven, not a requestAnimationFrame loop.
+
+     The old implementation ran its own rAF loop and bailed out
+     entirely under prefers-reduced-motion, which left the rows dead
+     still — the section's main visual just froze. A marquee is
+     decorative, but it is also the thing that makes the section read
+     as "a wall of tools" rather than a static list, so it now runs on
+     a plain CSS animation and is explicitly exempted from the
+     reduced-motion freeze further down this file.
+
+     Scroll velocity only rewrites --marquee-duration, so the surge is
+     kept without owning a second animation loop. */
+  [data-marquee-track] {
+    animation: pp-marquee var(--marquee-duration, 48s) linear infinite;
+  }
+  [data-marquee-track][data-marquee-dir='-1'] {
+    animation-direction: reverse;
+  }
+  /* Pause on hover / keyboard focus — WCAG 2.2.2, and the only way to
+     read a row that is moving. */
+  [data-marquee-host]:hover [data-marquee-track],
+  [data-marquee-host]:focus-within [data-marquee-track] {
+    animation-play-state: paused;
+  }
+} /* end @layer components */
+
+@keyframes pp-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* ── Shared-element page transitions ──────────────────────────
+   A card's image and the case-study hero share one
+   `view-transition-name`, so the browser interpolates between them
+   instead of cutting. Set from Work.tsx / the case-study route. */
+::view-transition-old(project-hero),
+::view-transition-new(project-hero) {
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* The root cross-fade is faster so it does not fight the hero morph */
+::view-transition-old(root) {
+  animation: pp-fade-out 200ms ease both;
+}
+::view-transition-new(root) {
+  animation: pp-fade-in 320ms ease both;
+}
+
+@keyframes pp-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes pp-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ── Custom cursor: pointer labels ──────────────────────────────
+   `data-cursor="VIEW"` on a link tells the custom cursor what to
+   print. It must NEVER be hidden — only the cursor layer itself is,
+   and that is tagged `data-cursor-layer` (see below). An earlier
+   version of this rule targeted `[data-cursor]` and silently hid the
+   entire Work grid, Life grid, Skills pill list and every Signal
+   tile's contents whenever reduced motion was on. */
+[data-cursor] {
+  cursor: pointer;
+}
+
+/* Pulsing dot for the status pill */
+@keyframes pp-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.pulse-dot {
+  animation: pp-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Subtle breathing for scroll hints */
+@keyframes pp-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.pulse-soft {
+  animation: pp-breathe 2.4s ease-in-out infinite;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────
+   The freeze below is intentional for every decorative transition. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* …except the skills marquee, which is exempted deliberately.
+
+     A class selector beats the `*` universal for !important
+     declarations, so this wins. The rows keep drifting at the base
+     speed and still pause on hover and keyboard focus, so nothing
+     flashes and a keyboard user can stop it. */
+  [data-marquee-track] {
+    animation-duration: var(--marquee-duration, 48s) !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  /* Journey falls back to a real horizontal scroll container.
+
+     Without the pin there is nothing to translate the track, so if the
+     desktop `overflow-x: visible` were left in place the cards would
+     run off the right edge of the screen with no scrollbar, no pin and
+     no scrub — four cards, the last of them ~780px past a 1536px
+     viewport, and no way to reach it. This is a live bug, not a
+     hypothetical: it is what a reduced-motion visitor saw. */
+  [data-journey-track] {
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    overscroll-behavior-x: contain;
+  }
+  /* Keep the grab cursor honest: on this path the browser scrolls the
+     element itself, so the pointer is not doing the dragging. */
+  [data-journey-track] {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(212 255 0 / 0.35) transparent;
+  }
+
+  /* The cursor LAYER is decorative and is removed entirely.
+     Deliberately `data-cursor-layer`, not `data-cursor`. */
+  [data-cursor-layer],
+  [data-grain],
+  [data-progress] {
+    display: none !important;
+  }
+
+  .parallax-media {
+    transform: none;
+  }
 }

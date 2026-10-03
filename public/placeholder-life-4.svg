@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700" aria-hidden="true">
+  <defs>
+    <linearGradient id="bgc231000" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F472B6" stop-opacity="0.085"/>
+      <stop offset="52%" stop-color="#F472B6" stop-opacity="0.028"/>
+      <stop offset="100%" stop-color="#0A0A0A"/>
+    </linearGradient>
+    <radialGradient id="glowc231000" cx="0.68" cy="0.36" r="0.7">
+      <stop offset="0%" stop-color="#F472B6" stop-opacity="0.055"/>
+      <stop offset="100%" stop-color="#F472B6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigc231000" cx="0.5" cy="0.45" r="0.8">
+      <stop offset="35%" stop-color="#0A0A0A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0A0A0A" stop-opacity="0.95"/>
+    </radialGradient>
+    <pattern id="gridc231000" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#F472B6" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1000" height="700" fill="#0A0A0A"/>
+  <rect width="1000" height="700" fill="url(#bgc231000)"/>
+  <rect x="-700" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-647.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-595" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-542.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-490" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-437.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-385" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-332.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-280" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-227.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-175" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-122.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-70" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="-17.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="35" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="87.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="140" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="192.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="245" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="297.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="560" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="612.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="665" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="717.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="770" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="822.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="875" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="927.5" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/><rect x="980" y="0" width="18.2" height="700" fill="#F472B6" fill-opacity="0.09" transform="skewX(-18)"/>
+  <rect width="1000" height="700" fill="url(#gridc231000)"/>
+  <rect width="1000" height="700" fill="url(#glowc231000)"/>
+  <rect width="1000" height="700" fill="url(#vigc231000)"/>
+
+  <!-- corner brackets: reads as a framed plate, not an unfinished box -->
+  <path d="M49 75 V49 H75" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+  <path d="M925 651 H951 V625" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+</svg>

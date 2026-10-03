@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800" aria-hidden="true">
+  <defs>
+    <linearGradient id="bgc6640" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.085"/>
+      <stop offset="52%" stop-color="#A78BFA" stop-opacity="0.028"/>
+      <stop offset="100%" stop-color="#0A0A0A"/>
+    </linearGradient>
+    <radialGradient id="glowc6640" cx="0.68" cy="0.36" r="0.7">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.055"/>
+      <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigc6640" cx="0.5" cy="0.45" r="0.8">
+      <stop offset="35%" stop-color="#0A0A0A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0A0A0A" stop-opacity="0.95"/>
+    </radialGradient>
+    <pattern id="gridc6640" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#A78BFA" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="640" height="800" fill="#0A0A0A"/>
+  <rect width="640" height="800" fill="url(#bgc6640)"/>
+  <circle cx="460.79999999999995" cy="336" r="48" fill="none" stroke="#A78BFA" stroke-opacity="0.267" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="96" fill="none" stroke="#A78BFA" stroke-opacity="0.234" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="144" fill="none" stroke="#A78BFA" stroke-opacity="0.201" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="192" fill="none" stroke="#A78BFA" stroke-opacity="0.168" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="240" fill="none" stroke="#A78BFA" stroke-opacity="0.135" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="288" fill="none" stroke="#A78BFA" stroke-opacity="0.102" stroke-width="1.5"/><circle cx="460.79999999999995" cy="336" r="336" fill="none" stroke="#A78BFA" stroke-opacity="0.069" stroke-width="1.5"/>
+  <rect width="640" height="800" fill="url(#gridc6640)"/>
+  <rect width="640" height="800" fill="url(#glowc6640)"/>
+  <rect width="640" height="800" fill="url(#vigc6640)"/>
+
+  <!-- corner brackets: reads as a framed plate, not an unfinished box -->
+  <path d="M45 71 V45 H71" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+  <path d="M569 755 H595 V729" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675" aria-hidden="true">
+  <defs>
+    <linearGradient id="bgc3900" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.085"/>
+      <stop offset="52%" stop-color="#38BDF8" stop-opacity="0.028"/>
+      <stop offset="100%" stop-color="#0A0A0A"/>
+    </linearGradient>
+    <radialGradient id="glowc3900" cx="0.68" cy="0.36" r="0.7">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.055"/>
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vigc3900" cx="0.5" cy="0.45" r="0.8">
+      <stop offset="35%" stop-color="#0A0A0A" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0A0A0A" stop-opacity="0.95"/>
+    </radialGradient>
+    <pattern id="gridc3900" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#38BDF8" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="900" height="675" fill="#0A0A0A"/>
+  <rect width="900" height="675" fill="url(#bgc3900)"/>
+  <path d="M0 202.5 L0.0 202.5 L22.5 217.8 L45.0 229.8 L67.5 235.8 L90.0 234.6 L112.5 226.4 L135.0 212.9 L157.5 197.2 L180.0 182.7 L202.5 172.4 L225.0 168.8 L247.5 172.4 L270.0 182.7 L292.5 197.2 L315.0 212.9 L337.5 226.4 L360.0 234.6 L382.5 235.8 L405.0 229.8 L427.5 217.8 L450.0 202.5 L472.5 187.2 L495.0 175.2 L517.5 169.2 L540.0 170.4 L562.5 178.6 L585.0 192.1 L607.5 207.8 L630.0 222.3 L652.5 232.6 L675.0 236.3 L697.5 232.6 L720.0 222.3 L742.5 207.8 L765.0 192.1 L787.5 178.6 L810.0 170.4 L832.5 169.2 L855.0 175.2 L877.5 187.2 L900.0 202.5" fill="none" stroke="#38BDF8" stroke-opacity="0.300" stroke-width="2"/><path d="M0 253.1 L0.0 296.4 L22.5 301.7 L45.0 296.4 L67.5 281.7 L90.0 260.7 L112.5 238.1 L135.0 218.7 L157.5 206.9 L180.0 205.1 L202.5 213.8 L225.0 231.1 L247.5 253.1 L270.0 275.2 L292.5 292.5 L315.0 301.1 L337.5 299.3 L360.0 287.5 L382.5 268.1 L405.0 245.5 L427.5 224.5 L450.0 209.8 L472.5 204.5 L495.0 209.8 L517.5 224.6 L540.0 245.5 L562.5 268.2 L585.0 287.5 L607.5 299.4 L630.0 301.1 L652.5 292.4 L675.0 275.2 L697.5 253.1 L720.0 231.0 L742.5 213.8 L765.0 205.1 L787.5 206.9 L810.0 218.8 L832.5 238.1 L855.0 260.7 L877.5 281.7 L900.0 296.4" fill="none" stroke="#38BDF8" stroke-opacity="0.220" stroke-width="2"/><path d="M0 303.7 L0.0 355.0 L22.5 332.5 L45.0 303.7 L67.5 274.9 L90.0 252.4 L112.5 241.1 L135.0 243.4 L157.5 258.9 L180.0 284.2 L202.5 313.7 L225.0 341.1 L247.5 360.3 L270.0 367.2 L292.5 360.3 L315.0 341.0 L337.5 313.6 L360.0 284.1 L382.5 258.8 L405.0 243.4 L427.5 241.1 L450.0 252.5 L472.5 275.0 L495.0 303.8 L517.5 332.6 L540.0 355.1 L562.5 366.4 L585.0 364.1 L607.5 348.6 L630.0 323.3 L652.5 293.8 L675.0 266.4 L697.5 247.2 L720.0 240.3 L742.5 247.2 L765.0 266.5 L787.5 293.9 L810.0 323.4 L832.5 348.7 L855.0 364.1 L877.5 366.4 L900.0 355.0" fill="none" stroke="#38BDF8" stroke-opacity="0.140" stroke-width="2"/>
+  <rect width="900" height="675" fill="url(#gridc3900)"/>
+  <rect width="900" height="675" fill="url(#glowc3900)"/>
+  <rect width="900" height="675" fill="url(#vigc3900)"/>
+
+  <!-- corner brackets: reads as a framed plate, not an unfinished box -->
+  <path d="M47 73 V47 H73" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+  <path d="M827 628 H853 V602" fill="none" stroke="#D4FF00" stroke-opacity="0.5" stroke-width="1.5"/>
+</svg>
