@@ -1,26 +1,51 @@
 import type { Metadata, Viewport } from 'next';
-import { Anton, Inter, JetBrains_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { meta } from '@/data/data';
 
-const display = Anton({
+/* ── Fonts are SELF-HOSTED, deliberately ──────────────────────────
+
+   These were `next/font/google`, which downloads each family from
+   fonts.gstatic.com *at build time*. That worked on this machine and
+   failed on Vercel:
+
+     Module not found: Can't resolve
+     '@vercel/turbopack-next/internal/font/google/font'
+
+   The deployment could not reach the font CDN, so the build died before
+   it produced any output — which is why the site 404'd rather than
+   showing an error. A build that depends on the network reaching a
+   third party is not reproducible.
+
+   next/font/local reads the .woff2 files out of the repo, so the build
+   is hermetic: no network, faster, and identical on every machine.
+   Files are the latin subset, 107 KB total, committed to the repo. */
+const display = localFont({
+  src: './fonts/anton-400.woff2',
   weight: '400',
-  subsets: ['latin'],
+  style: 'normal',
   variable: '--font-display-loaded',
   display: 'swap',
+  fallback: ['Arial Narrow', 'sans-serif'],
 });
 
-const body = Inter({
-  subsets: ['latin'],
+const body = localFont({
+  src: './fonts/inter-var.woff2',
+  weight: '100 900',
+  style: 'normal',
   variable: '--font-body-loaded',
   display: 'swap',
+  fallback: ['system-ui', 'sans-serif'],
 });
 
-const mono = JetBrains_Mono({
-  weight: ['400', '500'],
-  subsets: ['latin'],
+const mono = localFont({
+  src: [
+    { path: './fonts/jbmono-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/jbmono-500.woff2', weight: '500', style: 'normal' },
+  ],
   variable: '--font-mono-loaded',
   display: 'swap',
+  fallback: ['ui-monospace', 'monospace'],
 });
 
 export const metadata: Metadata = {
@@ -58,16 +83,11 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
-      <head>
-        {/* Preload the display face — it is the largest paint on the page */}
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/anton/v25/1Ptgg87LROyAm3K8-C8CSKlv.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-      </head>
+      {/* No manual <head> font preload. The Anton preload used to live
+          here, hardcoded to a fonts.gstatic.com URL — a build-time-free
+          but runtime network dependency that also failed outright on
+          Vercel. next/font/local already emits its own <link rel=preload>
+          for the hashed local file, so this block was pure duplication. */}
       <body className="antialiased">
         <a
           href="#main"

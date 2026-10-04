@@ -20,10 +20,26 @@
 
 /* ── Raw tokens: always shipped, safe for var() everywhere ──── */
 :root {
-  /* Type */
-  --font-display: 'Anton', 'Arial Narrow', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Type
+
+     These MUST lead with the `*-loaded` variable that layout.tsx passes
+     to next/font, and only then name the real family as a fallback.
+
+     The bug this fixes: these were declared as plain literals —
+     `--font-display: 'Anton', ...`. next/font never registers a family
+     under the name "Anton"; it registers it under the name derived from
+     the `variable` you passed, so the generated @font-face is
+     `font-family: display`. Asking for "Anton" matched nothing, so every
+     heading silently rendered in Arial Narrow / a system fallback while
+     the downloaded woff2 sat on disk unused (document.fonts reported
+     `display 400: loaded`, and `.display` computed to `Anton, ...`).
+
+     That was true with next/font/google too, so it predates the
+     self-hosting change — the display face has never once actually
+     rendered on this site. */
+  --font-display: var(--font-display-loaded), 'Anton', 'Arial Narrow', sans-serif;
+  --font-body: var(--font-body-loaded), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-mono-loaded), 'JetBrains Mono', ui-monospace, monospace;
 
   /* Rhythm */
   --gutter: clamp(1.25rem, 5vw, 5rem);
@@ -66,17 +82,41 @@
 
   /* Leading between the two name lines. Lower = closer together.
 
-     There is a hard floor here. `.line-mask` is `overflow: hidden`, so
-     once the line box gets shorter than the glyphs' ink box the mask
-     shears the letters off — measured at 0.74 PREET lost its bottom
-     edge and PANAVIYA was cut in half. 0.78 is the tightest value that
-     renders cleanly:
-       0.86  original, comfortable but a wide empty band between lines
-       0.82  slightly tighter
-       0.78  tight, poster-like, no clipping   <- current
-       0.74  CLIPS — do not go below this without also removing
-             `overflow: hidden` from .line-mask */
-  --hero-leading: 0.78;
+     `.line-mask` is `overflow: hidden`, so once the line box gets
+     shorter than the glyph ink box, the mask shears the letters off.
+
+     The floor is 0.88, and that number is derived from Anton's measured
+     metrics rather than eyeballed. Canvas TextMetrics, display face,
+     200px: fontBoundingBoxAscent 235, fontBoundingBoxDescent 66
+     (content box = 1.505em), actualBoundingBoxAscent 172 (cap ink top
+     at 0.860em), actualBoundingBoxDescent 0 (no descenders in caps).
+
+     CSS centres the content box in the line box, so the line box top
+     sits at `ascent + (L - content)/2` above the baseline. Keeping the
+     cap top inside it requires:
+       1.175 + (L - 1.505)/2 >= 0.860   =>   L >= 0.875
+     Rounded up to 0.90, not 0.88. At exactly 0.875 the cap top lands
+     0px inside the mask, which renders correctly but leaves the top row
+     of every capital sitting on the clip edge with no anti-aliasing
+     headroom. 0.90 puts ~1.5% of the type size between the mask and the
+     cap. Below 0.875 the mask eats the top of every capital.
+
+     Note a Range rect reports the 1.505em content box rather than the
+     0.86em of visible ink, so it flags "clipping" at every line-height.
+     Judge this from the cap-offset model or the rendered pixels.
+
+     This floor MOVED. It used to read 0.74, derived by eye while the
+     display face was silently falling back to Arial Narrow — cap height
+     ~0.72em — so the old value was tuned against metrics that were
+     never the ones being rendered. Against real Anton, 0.78 sheared
+     0.08em off the top AND bottom of every letter (79px per line at
+     217px type). The floor is font-derived, so re-measure it if the
+     display face ever changes:
+       0.90  tight, poster-like, caps intact   <- current
+       0.875 exact mathematical floor, cap sits on the clip edge
+       0.78  CLIPS ~0.095em off every cap (this was the old value)
+       0.74  CLIPS badly                        */
+  --hero-leading: 0.9;
 
   /* Timing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

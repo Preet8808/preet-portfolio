@@ -66,8 +66,14 @@ export function Contact() {
           07 — Contact
         </span>
 
-        {/* ── Massive headline ── */}
-        <h2 className="display mt-10 text-[clamp(2.4rem,10.5vw,9rem)] leading-[0.88]">
+        {/* ── Massive headline ──
+
+            leading-[0.9], not 0.88. Each line sits in its own
+            `.line-mask` (overflow: hidden), so leading below Anton's
+            0.875 cap-clipping floor shears the capitals. 0.88 put the
+            cap top 1.4px above the mask edge. See --hero-leading in
+            globals.css for the derivation. */}
+        <h2 className="display mt-10 text-[clamp(2.4rem,10.5vw,9rem)] leading-[0.9]">
           {contact.headline.map((line, i) => (
             <span key={line} className="line-mask block">
               <span data-contact-line className="block">

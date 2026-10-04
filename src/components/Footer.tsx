@@ -56,7 +56,9 @@ export function Footer() {
           <Link
             href="/"
             data-cursor="Home"
-            className="display text-[clamp(2.2rem,10vw,7rem)] leading-[0.85] transition-colors duration-300 hover:text-accent"
+            /* leading-[0.9], not 0.85 — 0.85 is below Anton's 0.875
+               cap-clipping floor. See --hero-leading in globals.css. */
+            className="display text-[clamp(2.2rem,10vw,7rem)] leading-[0.9] transition-colors duration-300 hover:text-accent"
           >
             Let&rsquo;s talk
           </Link>
