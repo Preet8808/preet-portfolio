@@ -323,17 +323,3 @@ export const menuLinks = [
   { label: "What's up", href: '#signal', image: '/placeholder-menu-5.svg' },
   { label: 'Contact', href: '#contact', image: '/placeholder-menu-6.svg' },
 ];
-
-/* ── Footer physics tags ──────────────────────────────────────── */
-export const floatTags = [
-  'Python',
-  'Docker',
-  'Rust',
-  'PostgreSQL',
-  'LLM',
-  'Kubernetes',
-  'TypeScript',
-  'MongoDB',
-  'Next.js',
-  'GitHub Actions',
-];

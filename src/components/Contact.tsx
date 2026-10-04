@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { contact, meta, floatTags } from '@/data/data';
+import { contact, meta } from '@/data/data';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import { MagneticButton } from '@/components/Chrome';
 
 /**
  * CHAPTER 08 — CONTACT
  *
- * Three pieces:
+ * Two pieces:
  *
  * 1. A massive two-line headline that rises from a mask on scroll.
  *
@@ -18,46 +18,18 @@ import { MagneticButton } from '@/components/Chrome';
  *    copies inside an overflow-hidden mask, the second sliding up over
  *    the first. Pure transform, no layout change.
  *
- * 3. Floating tags with light physics.
- *
- * On (3): the spec offered matter.js or react-three-fiber. I wrote the
- * loop by hand instead. matter.js is ~90 KB for what is, here, ten
- * elements doing damped float + mouse repulsion — and r3f would pull in
- * three.js (~500 KB) to move some text around. The hand-rolled version is
- * ~40 lines, ships nothing, and behaves identically at this scale.
- * If the tag count ever grows past a few dozen, reach for matter-js then.
+ * A third piece used to live here: a field of floating tech tags with
+ * hand-written physics — damped float, spring home, pointer repulsion
+ * inside a 130px radius, ~40 lines and no dependency. It was removed as
+ * scope, along with the "drag your cursor through it" prompt and the
+ * coarse-pointer/reduced-motion handling that kept the prompt honest.
+ * The Skills chapter already lists the stack, so the field was a second
+ * place to read the same information.
  */
 
 export function Contact() {
   const reduced = useReducedMotion();
   const section = useRef<HTMLElement>(null);
-  // Does the tag field have a real pointer to be dragged by? See
-  // tagsAreDraggable below — the label depends on it staying truthful.
-  const [finePointer, setFinePointer] = useState(true);
-
-  useEffect(() => {
-    const coarse = window.matchMedia('(pointer: coarse)');
-    const noHover = window.matchMedia('(hover: none)');
-    const report = () => setFinePointer(!coarse.matches && !noHover.matches);
-    report();
-    coarse.addEventListener('change', report);
-    noHover.addEventListener('change', report);
-    return () => {
-      coarse.removeEventListener('change', report);
-      noHover.removeEventListener('change', report);
-    };
-  }, []);
-
-  /* True only when the tags will actually mount their physics loop AND
-     there is a cursor to drive it. Both conditions are read here rather
-     than reported by the child, because useReducedMotion() starts false
-     and self-corrects after mount — a one-shot callback from the child
-     would capture the value from before that correction and never fire
-     again, leaving the label permanently stale.
-
-     Also declared as a function, not a value, so the two inputs are read
-     at render time and cannot fall out of step with each other. */
-  const tagsAreDraggable = () => !reduced && finePointer;
 
   useEffect(() => {
     if (reduced) return;
@@ -114,8 +86,11 @@ export function Contact() {
           ))}
         </h2>
 
-        <div className="mt-16 grid gap-16 lg:grid-cols-[1fr_1fr]">
-          {/* ── Left: email roll + buttons ── */}
+        {/* Single column since the physics tag field was removed — this was
+            a two-up grid with the tags on the right, so without changing
+            this the email block would sit stranded in the left half. */}
+        <div className="mt-16 max-w-[42rem]">
+          {/* ── Email roll + buttons ── */}
           <div data-contact-fade>
             <p className="max-w-[38ch] text-[clamp(1rem,1.6vw,1.15rem)] text-ink-2">
               Graduating 2028. Open to AI, backend and infrastructure internships —
@@ -157,24 +132,6 @@ export function Contact() {
               </MagneticButton>
             </div>
           </div>
-
-          {/* ── Right: physics tags ── */}
-          <div data-contact-fade>
-            {/* Only promise an interaction that exists. The tags are a
-                plain static wrap under reduced motion or on a coarse
-                pointer, and telling someone to drag a cursor they do not
-                have is worse than saying nothing.
-
-                Derived rather than passed down: useReducedMotion() starts
-                false and corrects itself after mount, so a one-shot
-                callback from the child reports the pre-correction value
-                and never updates. Reading the same signals here keeps the
-                label in step with what actually rendered. */}
-            <p className="label mb-4">
-              {tagsAreDraggable() ? 'Drag your cursor through it' : 'Stack I work with'}
-            </p>
-            <FloatTags interactive={tagsAreDraggable()} />
-          </div>
         </div>
 
         {/* ── Contact rows ── */}
@@ -198,174 +155,5 @@ export function Contact() {
         </ul>
       </div>
     </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
-   FLOATING TAGS
-   ══════════════════════════════════════════════════════════════ */
-
-type Node = {
-  el: HTMLElement;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  bx: number; // home
-  by: number;
-  phase: number;
-  drift: number;
-};
-
-function FloatTags({ interactive }: { interactive: boolean }) {
-  const box = useRef<HTMLDivElement>(null);
-  const nodes = useRef<Node[]>([]);
-  const mouse = useRef({ x: -9999, y: -9999, active: false });
-
-  /* The caller passes `interactive` so the field and the label above it
-     can never disagree — it already accounts for reduced motion AND for
-     the absence of a real pointer. On a phone that means the static wrap
-     renders instead of a bordered panel whose physics loop nothing can
-     reach, which would otherwise sit there looking interactive while
-     ignoring every touch. */
-  useEffect(() => {
-    if (!interactive) return;
-    const host = box.current;
-    if (!host) return;
-
-    const RADIUS = 130; // pointer influence
-    const SPRING = 0.012; // pull back to home
-    const DAMP = 0.88; // velocity decay
-
-    let raf = 0;
-    let w = 0;
-    let h = 0;
-
-    const measure = () => {
-      const r = host.getBoundingClientRect();
-      w = r.width;
-      h = r.height;
-    };
-    measure();
-
-    // Seed each tag at a scattered home position.
-    const tags = Array.from(host.querySelectorAll<HTMLElement>('[data-tag]'));
-    nodes.current = tags.map((el, i) => {
-      const bx = ((i * 37) % 100) / 100 * (w - 150) + 20;
-      const by = ((i * 61) % 100) / 100 * (h - 90) + 20;
-      el.style.transform = `translate3d(${bx}px, ${by}px, 0)`;
-      return {
-        el,
-        x: bx,
-        y: by,
-        vx: 0,
-        vy: 0,
-        bx,
-        by,
-        phase: Math.random() * Math.PI * 2,
-        drift: 0.5 + Math.random() * 0.9,
-      };
-    });
-
-    const onMove = (e: PointerEvent) => {
-      const r = host.getBoundingClientRect();
-      mouse.current.x = e.clientX - r.left;
-      mouse.current.y = e.clientY - r.top;
-      mouse.current.active = true;
-    };
-    const onLeave = () => (mouse.current.active = false);
-
-    const onResize = () => {
-      measure();
-    };
-
-    window.addEventListener('pointermove', onMove, { passive: true });
-    host.addEventListener('pointerleave', onLeave);
-    window.addEventListener('resize', onResize);
-
-    const tick = (time: number) => {
-      raf = requestAnimationFrame(tick);
-      if (document.hidden) return;
-
-      const t = time * 0.001;
-
-      for (const n of nodes.current) {
-        // Gentle buoyancy so nothing sits perfectly still
-        n.vx += Math.cos(t * n.drift + n.phase) * 0.014;
-        n.vy += Math.sin(t * n.drift * 0.8 + n.phase) * 0.014;
-
-        // Spring home
-        n.vx += (n.bx - n.x) * SPRING;
-        n.vy += (n.by - n.y) * SPRING;
-
-        // Pointer repulsion
-        if (mouse.current.active) {
-          const dx = n.x + 55 - mouse.current.x;
-          const dy = n.y + 18 - mouse.current.y;
-          const d = Math.hypot(dx, dy);
-          if (d < RADIUS && d > 0.01) {
-            const force = (1 - d / RADIUS) * 0.9;
-            n.vx += (dx / d) * force;
-            n.vy += (dy / d) * force;
-          }
-        }
-
-        n.vx *= DAMP;
-        n.vy *= DAMP;
-        n.x += n.vx;
-        n.y += n.vy;
-
-        n.el.style.transform = `translate3d(${n.x}px, ${n.y}px, 0) rotate(${
-          n.vx * 1.6
-        }deg)`;
-      }
-    };
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('pointermove', onMove);
-      host.removeEventListener('pointerleave', onLeave);
-      window.removeEventListener('resize', onResize);
-    };
-  }, [interactive]);
-
-  if (!interactive) {
-    // Static, readable fallback — tags laid out as a plain wrap.
-    // Covers both reduced motion and the absence of a pointer, so the
-    // field never renders as something that looks draggable but is not.
-    return (
-      <ul className="flex flex-wrap gap-2">
-        {floatTags.map((t) => (
-          <li
-            key={t}
-            className="rounded-full border border-white/12 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-3"
-          >
-            {t}
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  return (
-    <div
-      ref={box}
-      className="relative h-[19rem] overflow-hidden rounded-[var(--radius-card)] border border-white/10 bg-base-raised"
-    >
-      {floatTags.map((t, i) => (
-        <span
-          key={t}
-          data-tag
-          className={`absolute left-0 top-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
-            i % 3 === 0
-              ? 'border-accent/50 bg-accent/10 text-accent'
-              : 'border-white/14 bg-base text-ink-2'
-          }`}
-        >
-          {t}
-        </span>
-      ))}
-    </div>
   );
 }
