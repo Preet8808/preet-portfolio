@@ -95,24 +95,6 @@ export const intro = {
     { k: 'Graduating', v: '2028' },
     { k: 'Focus', v: 'AI pipelines · Backend · Infrastructure' },
   ],
-  /** Signature flourish — strokes itself on scroll.
-
-      This has to read as a HANDWRITTEN SIGNATURE at a glance. The
-      first version was a bare cubic wave ("M8 60 C 30 12, 52 78 …"),
-      which looked like a random squiggle with no meaning — it drew
-      attention to itself as a mistake rather than as a signature.
-
-      Three strokes instead, in the order a real one is written:
-        1. a cursive run — loop, shoulder, two connected humps, tail
-        2. the cross of the capital
-        3. a long underline sweeping off to the right
-      The underline is what sells it: signatures are recognised by the
-      flourish underneath, not the letterforms. */
-  signature:
-    'M14 46 C 20 14, 34 8, 44 20 C 52 30, 42 44, 33 42 C 24 40, 30 22, 52 30 ' +
-    'C 72 37, 92 46, 108 40 C 120 35, 116 20, 107 23 C 98 26, 110 46, 136 42 ' +
-    'C 156 39, 168 20, 180 27 C 190 33, 184 46, 196 41 C 206 37, 218 28, 230 31',
-  signatureUnderline: 'M8 56 C 62 62, 152 60, 236 50',
 };
 
 /* ── Journey timeline ─────────────────────────────────────────── */

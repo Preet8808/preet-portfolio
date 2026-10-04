@@ -11,8 +11,7 @@ import { intro } from '@/data/data';
  *
  * Pinned viewport. As you scroll, the bio's words brighten one by one
  * from dim to full, which forces reading at a crawl and lands the point
- * in the copy. Alongside it: four count-up stats and a general-info card
- * whose signature SVG draws itself on stroke-dashoffset.
+ * in the copy. Alongside it: four count-up stats and a general-info card.
  *
  * Cost note: the word highlight is one scrubbed tween over an array of
  * spans — no per-frame DOM reads. The pin is released immediately on
@@ -26,7 +25,6 @@ export function Intro() {
   const section = useRef<HTMLElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const bioRef = useRef<HTMLParagraphElement>(null);
-  const sigRef = useRef<SVGPathElement>(null);
 
   /**
    * Split the bio into words, flagging any wrapped in <data-em> so they
@@ -112,22 +110,6 @@ export function Intro() {
         },
       });
 
-      /* ── Signature stroke draw ── */
-      const path = sigRef.current;
-      if (path) {
-        const len = path.getTotalLength();
-        gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
-        gsap.to(path, {
-          strokeDashoffset: 0,
-          ease: 'power2.inOut',
-          scrollTrigger: {
-            trigger: section.current,
-            start: 'top 45%',
-            end: '+=40%',
-            scrub: 0.6,
-          },
-        });
-      }
     }, section);
 
     return () => ctx.revert();
@@ -213,33 +195,6 @@ export function Intro() {
                 ))}
               </ul>
 
-              {/* Signature — draws itself */}
-              <svg
-                viewBox="0 0 244 66"
-                className="mt-7 h-14 w-full"
-                aria-hidden="true"
-              >
-                <path
-                  ref={sigRef}
-                  d={intro.signature}
-                  fill="none"
-                  stroke="var(--color-accent)"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                />
-                {/* Underline is a separate path so it is not part of the
-                    draw-on animation — it should already be there when
-                    the flourish lands. */}
-                <path
-                  d={intro.signatureUnderline}
-                  fill="none"
-                  stroke="var(--color-accent)"
-                  strokeOpacity="0.45"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span className="label mt-2 block">Preet Panaviya</span>
             </div>
           </div>
         </div>
