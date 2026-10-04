@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { contact, meta, floatTags } from '@/data/data';
@@ -31,6 +31,33 @@ import { MagneticButton } from '@/components/Chrome';
 export function Contact() {
   const reduced = useReducedMotion();
   const section = useRef<HTMLElement>(null);
+  // Does the tag field have a real pointer to be dragged by? See
+  // tagsAreDraggable below — the label depends on it staying truthful.
+  const [finePointer, setFinePointer] = useState(true);
+
+  useEffect(() => {
+    const coarse = window.matchMedia('(pointer: coarse)');
+    const noHover = window.matchMedia('(hover: none)');
+    const report = () => setFinePointer(!coarse.matches && !noHover.matches);
+    report();
+    coarse.addEventListener('change', report);
+    noHover.addEventListener('change', report);
+    return () => {
+      coarse.removeEventListener('change', report);
+      noHover.removeEventListener('change', report);
+    };
+  }, []);
+
+  /* True only when the tags will actually mount their physics loop AND
+     there is a cursor to drive it. Both conditions are read here rather
+     than reported by the child, because useReducedMotion() starts false
+     and self-corrects after mount — a one-shot callback from the child
+     would capture the value from before that correction and never fire
+     again, leaving the label permanently stale.
+
+     Also declared as a function, not a value, so the two inputs are read
+     at render time and cannot fall out of step with each other. */
+  const tagsAreDraggable = () => !reduced && finePointer;
 
   useEffect(() => {
     if (reduced) return;
@@ -133,8 +160,20 @@ export function Contact() {
 
           {/* ── Right: physics tags ── */}
           <div data-contact-fade>
-            <p className="label mb-4">Drag your cursor through it</p>
-            <FloatTags />
+            {/* Only promise an interaction that exists. The tags are a
+                plain static wrap under reduced motion or on a coarse
+                pointer, and telling someone to drag a cursor they do not
+                have is worse than saying nothing.
+
+                Derived rather than passed down: useReducedMotion() starts
+                false and corrects itself after mount, so a one-shot
+                callback from the child reports the pre-correction value
+                and never updates. Reading the same signals here keeps the
+                label in step with what actually rendered. */}
+            <p className="label mb-4">
+              {tagsAreDraggable() ? 'Drag your cursor through it' : 'Stack I work with'}
+            </p>
+            <FloatTags interactive={tagsAreDraggable()} />
           </div>
         </div>
 
@@ -178,14 +217,19 @@ type Node = {
   drift: number;
 };
 
-function FloatTags() {
-  const reduced = useReducedMotion();
+function FloatTags({ interactive }: { interactive: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const nodes = useRef<Node[]>([]);
   const mouse = useRef({ x: -9999, y: -9999, active: false });
 
+  /* The caller passes `interactive` so the field and the label above it
+     can never disagree — it already accounts for reduced motion AND for
+     the absence of a real pointer. On a phone that means the static wrap
+     renders instead of a bordered panel whose physics loop nothing can
+     reach, which would otherwise sit there looking interactive while
+     ignoring every touch. */
   useEffect(() => {
-    if (reduced) return;
+    if (!interactive) return;
     const host = box.current;
     if (!host) return;
 
@@ -284,10 +328,12 @@ function FloatTags() {
       host.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('resize', onResize);
     };
-  }, [reduced]);
+  }, [interactive]);
 
-  if (reduced) {
+  if (!interactive) {
     // Static, readable fallback — tags laid out as a plain wrap.
+    // Covers both reduced motion and the absence of a pointer, so the
+    // field never renders as something that looks draggable but is not.
     return (
       <ul className="flex flex-wrap gap-2">
         {floatTags.map((t) => (
