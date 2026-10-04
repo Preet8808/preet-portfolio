@@ -65,6 +65,75 @@ export function Hero() {
     };
   }, [reduced]);
 
+  // ── Name lockup ──
+  /* Both name lines are inset from their own edge by the SAME amount,
+     which is what keeps the pair optically centred: line 1 starts at
+     gutter+inset and line 2 ends at width-gutter-inset, so the block is
+     symmetric about the viewport centre for any inset.
+
+     The inset is measured, not fixed. A vw value cannot work here,
+     because --hero-size is min(23vw, 22vh) — the type is sized off the
+     SHORTER axis on squat windows, so a proportional inset drifts. With
+     --hero-inset at a flat 13vw the horizontal gap between the two words
+     measured +269px at 1900 wide, +69px at 1536, and -404px at 768 —
+     visibly far apart on one screen and jammed together on another.
+
+     So: measure the real ink width of each word, then solve for the inset
+     that centres the pair with the gap expressed as a fraction of the type
+     size. Identical proportions at every viewport. */
+  useEffect(() => {
+    const h1 = nameBlock.current;
+    if (!h1) return;
+
+    const measure = () => {
+      const a = lineA.current;
+      const b = lineB.current;
+      if (!a || !b) return;
+
+      // Ink width, not the element box: both lines are full-width blocks
+      // with padding, so getBoundingClientRect would report the container.
+      const inkWidth = (el: HTMLElement) => {
+        const r = document.createRange();
+        r.selectNodeContents(el);
+        return r.getBoundingClientRect().width;
+      };
+
+      const sum = inkWidth(a) + inkWidth(b);
+      const box = h1.getBoundingClientRect().width;
+
+      // --gutter is a clamp(), so resolve it by measuring rather than
+      // reading the custom property, which returns the unresolved token.
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position:absolute;visibility:hidden;width:var(--gutter);height:0';
+      document.body.appendChild(probe);
+      const gutter = probe.getBoundingClientRect().width;
+      probe.remove();
+
+      const fs = parseFloat(getComputedStyle(a).fontSize) || 1;
+
+      // Slightly negative gap: the two words interlock, which is what
+      // makes them read as one name rather than two set pieces.
+      const gap = -0.02 * fs;
+
+      // Negative on narrow screens, where the words are simply wider than
+      // the viewport. Clamped to 0 so they sit on the gutters and overlap
+      // as much as they must — still centred, never clipped off-screen.
+      const inset = Math.max(0, (box - 2 * gutter - sum - gap) / 2);
+
+      h1.style.setProperty('--hero-inset', `${Math.round(inset)}px`);
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(h1);
+
+    // The faces can land after first paint and change the ink widths.
+    document.fonts?.ready.then(measure).catch(() => {});
+
+    return () => ro.disconnect();
+  }, []);
+
   // ── Scroll-out: block drifts up and dims ──
   useEffect(() => {
     if (reduced) return;
@@ -196,7 +265,7 @@ export function Hero() {
               wordmark, the overlay is transparent except where the
               spotlight falls, so the light reads on a solid fill as a
               halo rather than a colour change. */}
-          <span className="line-mask relative block pl-[var(--gutter)]">
+          <span className="line-mask relative block pl-[calc(var(--gutter)+var(--hero-inset))]">
             <span
               ref={lineA}
               className="display display-tight block text-[length:var(--hero-size)] will-change-transform"
@@ -205,7 +274,7 @@ export function Hero() {
             </span>
             <span
               aria-hidden="true"
-              className="hero-spot display display-tight absolute inset-0 block pl-[var(--gutter)] text-[length:var(--hero-size)]"
+              className="hero-spot display display-tight absolute inset-0 block pl-[calc(var(--gutter)+var(--hero-inset))] text-[length:var(--hero-size)]"
             >
               {name.first}
             </span>
@@ -238,10 +307,11 @@ export function Hero() {
               OUTLINE, so the spotlight filling the glyphs solid as the
               cursor crosses them is plainly visible.
 
-              `pr-[calc(var(--gutter)+var(--hero-inset))]` pulls PANAVIYA
-              in from the right edge so it sits closer to PREET. Without
-              it the two words were flush to opposite edges with ~517px
-              of dead space between them and read as unrelated blocks. */}
+              Both lines carry the same --hero-inset, which is what keeps
+              the pair centred — see the Name lockup effect. PREET stays
+              line 1 and PANAVIYA line 2 so the name still reads in
+              order; they are drawn towards each other and towards the
+              centre rather than swapped. */}
           <span className="line-mask relative z-20 block pr-[calc(var(--gutter)+var(--hero-inset))] text-right">
             <span
               ref={lineB}

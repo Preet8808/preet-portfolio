@@ -67,18 +67,22 @@
      declaration as its length. */
   --hero-size: clamp(3rem, min(23vw, 22vh), 16rem);
 
-  /* How far "PANAVIYA" is pulled in from the right edge.
+  /* Fallback inset for the hero name, in px, applied to BOTH name lines
+     so the pair stays symmetric about the viewport centre.
 
-     The two name lines already OVERLAP vertically (-141px of ink
-     overlap at 1900px wide), so leading was never what separated them.
-     The real gap is horizontal: with PREET flush left and PANAVIYA
-     flush right there were 517px of dead space between PREET's right
-     edge and PANAVIYA's left edge, which is what made the two words
-     read as two unrelated blocks rather than one name.
+     Hero.tsx overwrites this with a measured value on mount and on
+     resize. This literal is only what renders before that runs (and on
+     the server), so it is deliberately a plausible mid-size number rather
+     than something that has to be correct — the effect replaces it
+     immediately and it never causes a layout shift worth seeing.
 
-     This insets the second line from the right to close that gap.
-     Set to 0vw to restore the original full-bleed spread. */
-  --hero-inset: 13vw;
+     Do NOT set this in vw. --hero-size is min(23vw, 22vh), so on squat
+     windows the type is sized off the height and the words get much
+     wider in vw terms. A proportional inset therefore drifts: at a flat
+     13vw the gap between the two words came out +269px at 1900 wide,
+     +69px at 1536 and -404px at 768 — far apart on one screen, jammed
+     together on another. */
+  --hero-inset: 0px;
 
   /* Leading between the two name lines. Lower = closer together.
 
